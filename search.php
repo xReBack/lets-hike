@@ -9,30 +9,20 @@ $bathrooms = 0;
 $bedrooms = 0;
 $beds = 0;
 $livingrooms = 0;
-if (isset($_GET['country']) && isset($_GET['start-date']) && isset($_GET['end-date'])) {
+if (isset($_GET['country']) && isset($_GET['start-date']) && isset($_GET['end-date'])) 
+{
   $location = $_GET['country'];
   $date_in = $_GET['start-date'];
   $date_out = $_GET['end-date'];
-  if (isset($_GET['price-min']) && isset($_GET['price-max'])) {
+
+  $_SESSION['keywordSearch'] = $location;
+
+  if (isset($_GET['price-min']) && isset($_GET['price-max'])) 
+  {
     $price_min = $_GET['price-min'];
     $price_max = $_GET['price-max'];
   }
-  if (isset($_GET['bathrooms'])) {
-    if (!empty($_GET['bathrooms']))
-      $bathrooms = $_GET['bathrooms'];
-  }
-  if (isset($_GET['bedrooms'])) {
-    if (!empty($_GET['bedrooms']))
-      $bedrooms = $_GET['bedrooms'];
-  }
-  if (isset($_GET['beds'])) {
-    if (!empty($_GET['beds']))
-      $beds = $_GET['beds'];
-  }
-  if (isset($_GET['livingrooms'])) {
-    if (!empty($_GET['livingrooms']))
-      $livingrooms = $_GET['livingrooms'];
-  }
+
 } else {
   $msg = "An error has occured, Please try again";
   $_GET['err_msg'] = $msg;
@@ -45,7 +35,20 @@ $date_out = date("Y-m-d", strtotime($date_out));
 
 //Select hikes where arrival time - end_time is available
 //Order by the best average rating
-$hikes = DB::query('SELECT h.*, i.image, 
+
+// $hikes = DB::query('SELECT h.*, i.image, 
+//                     AVG(r.stars) as total_rating,
+//                     COUNT(CASE CONVERT(r.stars,int) WHEN 1 THEN 1 ELSE NULL END) as total_rating_1,
+//                     COUNT(CASE CONVERT(r.stars,int) WHEN 2 THEN 1 ELSE NULL END) as total_rating_2,
+//                     COUNT(CASE CONVERT(r.stars,int) WHEN 3 THEN 1 ELSE NULL END) as total_rating_3,
+//                     COUNT(CASE CONVERT(r.stars,int) WHEN 4 THEN 1 ELSE NULL END) as total_rating_4,
+//                     COUNT(CASE CONVERT(r.stars,int) WHEN 5 THEN 1 ELSE NULL END) as total_rating_5
+//                     FROM hikes h LEFT JOIN hike_images i on h.id=i.hike_id LEFT JOIN reviews r on h.id=r.hike_id WHERE h.location=:location
+//         AND (SELECT COUNT(id) FROM order_items WHERE start_date <= :leave_time AND end_date >=
+//         :arrival_time AND hike_id=h.id)=0 GROUP BY i.hike_id ORDER BY total_rating DESC', array(":location" => $location, ":arrival_time" => $date_in, ":leave_time" => $date_out));
+
+$hikes = DB::query(
+  'SELECT h.*, i.image, 
                     AVG(r.stars) as total_rating,
                     COUNT(CASE CONVERT(r.stars,int) WHEN 1 THEN 1 ELSE NULL END) as total_rating_1,
                     COUNT(CASE CONVERT(r.stars,int) WHEN 2 THEN 1 ELSE NULL END) as total_rating_2,
@@ -53,8 +56,11 @@ $hikes = DB::query('SELECT h.*, i.image,
                     COUNT(CASE CONVERT(r.stars,int) WHEN 4 THEN 1 ELSE NULL END) as total_rating_4,
                     COUNT(CASE CONVERT(r.stars,int) WHEN 5 THEN 1 ELSE NULL END) as total_rating_5
                     FROM hikes h LEFT JOIN hike_images i on h.id=i.hike_id LEFT JOIN reviews r on h.id=r.hike_id WHERE h.location=:location
-        AND (SELECT COUNT(id) FROM order_items WHERE start_date <= :leave_time AND end_date >=
-        :arrival_time AND hike_id=h.id)=0 GROUP BY i.hike_id ORDER BY total_rating DESC', array(":location" => $location, ":arrival_time" => $date_in, ":leave_time" => $date_out));
+                    GROUP BY i.hike_id ORDER BY total_rating DESC',
+  array(
+    ":location" => $location
+  )
+);
 
 // For Testing
 // $hikes = DB::query('SELECT h.*, i.image FROM hikes h LEFT JOIN hike_images i on h.id=i.hike_id GROUP BY i.hike_id');
@@ -107,8 +113,8 @@ $hikes = DB::query('SELECT h.*, i.image,
 
             <div class="content">
               <div class="rating" data-rating_1="<?php echo $hike['total_rating_1'] ?? 0; ?>" data-rating_2="<?php echo $hike['total_rating_2'] ?? 0; ?>" data-rating_3="<?php echo $hike['total_rating_3'] ?? 0; ?>" data-rating_4="<?php echo $hike['total_rating_4'] ?? 0; ?>" data-rating_5="<?php echo $hike['total_rating_5'] ?? 0; ?>" data-rating="<?php echo $hike['total_rating'] ?? 0; ?>">
-                <h1><?php echo $hike['name']; ?></h1>
               </div>
+              <h1><?php echo $hike['name']; ?></h1>
               <div class="price">
                 Starting at: <?php echo $hike['price']; ?> EGP
               </div>
