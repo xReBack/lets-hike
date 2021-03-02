@@ -1,8 +1,15 @@
 <?php
 include('includes/head.php');
 if (isset($_GET['id'])) {
+  if(!DB::query('SELECT * FROM hikes WHERE id=:id', array(':id' => $_GET['id'])))
+  {
+    http_response_code(404);
+    include('404.php');
+    exit;
+  }
+
   $hikeid = $_GET['id'];
-  $hike_info = DB::query('SELECT h.*,c.name as country,
+  $hike_info = DB::query('SELECT h.*,c.iso3 as country,
                                   COUNT(r.stars) as rating_count,
                                   AVG(r.stars) as total_rating,
                                   COUNT(CASE CONVERT(r.stars,int) WHEN 1 THEN 1 ELSE NULL END) as total_rating_1,
@@ -20,7 +27,9 @@ if (isset($_GET['id'])) {
     $hikeImage = "default.png";
   }
 } else {
-  die("Not Found");
+    http_response_code(404);
+    include('404.php');
+    exit;
 }
 
 if (isset($_POST['add'])) {
@@ -62,10 +71,10 @@ if (isset($_POST['add'])) {
           )
         );
 
-        echo '<script>alert("Added To Added Cart")</script>';
+        echo '<script>alert("Hike Added To Cart")</script>';
         echo '<script>window.location="cart.php"</script>';
       } else {
-        echo '<script>alert("Item Already Added")</script>';
+        echo '<script>alert("Hike Already Added")</script>';
         echo '<script>window.location="cart.php"</script>';
       }
     } else {
